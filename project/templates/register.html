@@ -1,0 +1,17 @@
+{% extends "_base.html" %}
+{% block content %}
+
+<h1>Welcome to flask task thing</h1>
+
+<h3>Please create an account</h3>
+
+<form method="POST" action="">
+    {{ form.csrf_token }}
+    {{ form.name.label }}: {{ form.name }} <br>
+    {{ form.email.label }}: {{ form.email }}<br>
+    {{ form.password.label }}: {{ form.password }}<br>
+    {{ form.confirm.label }}: {{ form.confirm }}<br>
+    <input type="submit" value="Register">
+</form>
+
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "_base.html" %}
+
+{% block content %}
+
+<form action="{{ url_for('new_task') }}" method="POST">
+    {{ form.csrf_token }}
+    <label>Name:</label><input type="text" name="name">
+    <label>Due Date: (mm/dd/yyyy)</label><input type="text" name="due_date">
+    <label>Priority:</label>
+    <select name="priority" width=100px>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+    </select>
+    <input class="button" type="submit" value="Save new task">
+</form>
+
+<br>
+<h2>Open Tasks</h2>
+{% for task in open_tasks %}    
+    <table>
+        <tr>
+            <td>{{ task.task_id }}</td>
+            <td>{{ task.name }}</td>
+            <td>{{ task.due_date }}</td>
+            <td>{{ task.posted_date }}</td>
+            <td>{{ task.priority }}</td>
+            <td>{{ task.poster.name }}</td>
+            <td><a href="{{url_for('complete_task', task_id=task.task_id)}}">Complete</a></td>
+            <td><a href="{{url_for('delete_task', task_id=task.task_id)}}">Delete</a></td>
+        </tr>
+    </table>
+{% endfor %}
+
+<br>
+<h2>Completed Tasks</h2>
+{% for task in closed_tasks %}    
+    <table>
+        <tr>
+            <td>{{ task.task_id }}</td>
+            <td>{{ task.name }}</td>
+            <td>{{ task.due_date }}</td>
+            <td>{{ task.posted_date }}</td>
+            <td>{{ task.priority }}</td>
+            <td>{{ task.poster.name }}</td>
+            <td><a href="{{url_for('delete_task', task_id=task.task_id)}}">Delete</a></td>
+        </tr>
+    </table>
+{% endfor %}
+
+{% endblock %}
