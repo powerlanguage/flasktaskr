@@ -12,6 +12,7 @@ from flask import (
     url_for,
 )
 from flask.ext.sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import IntegrityError
 from forms import AddTaskForm, RegisterForm, LoginForm
 import datetime
 
@@ -54,18 +55,19 @@ def login():
     error = None
     form = LoginForm(request.form)
 
-    if form.validate_on_submit():
-        user = User.query.filter_by(name=form.name.data).first()
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            user = User.query.filter_by(name=form.name.data).first()
 
-        if user is not None and user.password == form.password.data:
-            session['logged_in'] = True
-            session['user_id'] = user.id
-            flash("Welcome, {0}".format(user.name))
-            return redirect(url_for('tasks'))
+            if user is not None and user.password == form.password.data:
+                session['logged_in'] = True
+                session['user_id'] = user.id
+                flash("Welcome, {0}".format(user.name))
+                return redirect(url_for('tasks'))
+            else:
+                error = 'Invalid credentials.  Please try again.'
         else:
-            error = 'Invalid credentials.  Please try again.'
-    else:
-        error = 'Both fields are required.'
+            error = 'Both fields are required.'
 
     return render_template(
         'login.html',
@@ -85,10 +87,13 @@ def register():
             form.email.data,
             form.password.data
         )
-        db.session.add(new_user)
-        db.session.commit()
-        flash("Thanks for registering, {0}".format(new_user.name))
-        return redirect(url_for('login'))
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+            flash("Thanks for registering, {0}".format(new_user.name))
+            return redirect(url_for('login'))
+        except IntegrityError:
+            error = "That username and/or email already exists."
 
     return render_template(
         'register.html',
@@ -101,17 +106,11 @@ def register():
 @login_required
 def tasks():
     """Display open and closed tasks."""
-    open_tasks = db.session.query(Task) \
-        .filter_by(status='1').order_by(Task.due_date.asc())
-
-    closed_tasks = db.session.query(Task) \
-        .filter_by(status='0').order_by(Task.due_date.asc())
-
     return render_template(
         'tasks.html',
         form=AddTaskForm(request.form),
-        open_tasks=open_tasks,
-        closed_tasks=closed_tasks
+        open_tasks=open_tasks(),
+        closed_tasks=closed_tasks()
     )
 
 
@@ -132,10 +131,12 @@ def new_task():
         db.session.add(new_task)
         db.session.commit()
         flash("{0} was successfully posted. Thanks.".format(new_task.name))
-    else:
-        flash(form.errors)
-
-    return redirect(url_for('tasks'))
+    return render_template(
+        'tasks.html',
+        form=form,
+        open_tasks=open_tasks(),
+        closed_tasks=closed_tasks()
+    )
 
 
 @app.route('/delete/<int:task_id>')
@@ -158,3 +159,27 @@ def complete_task(task_id):
     db.session.commit()
     flash("{0} was completed. Nice".format(task_name))
     return redirect(url_for('tasks'))
+
+
+# def flash_errors(form):
+#     """Flash errors in forms."""
+#     for field, errors in form.errors.items():
+#         for error in errors:
+#             flash(
+#                 "Error in the {} field - {} error".format(
+#                     getattr(form, field).label.text,
+#                     error
+#                 )
+#             )
+
+
+def open_tasks():
+    """Return open tasks."""
+    return db.session.query(Task) \
+        .filter_by(status='1').order_by(Task.due_date.asc())
+
+
+def closed_tasks():
+    """Return closed tasks."""
+    return db.session.query(Task) \
+        .filter_by(status='0').order_by(Task.due_date.asc())

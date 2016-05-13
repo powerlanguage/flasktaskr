@@ -4,21 +4,29 @@
 
 <form action="{{ url_for('new_task') }}" method="POST">
     {{ form.csrf_token }}
-    <label>Name:</label><input type="text" name="name">
-    <label>Due Date: (mm/dd/yyyy)</label><input type="text" name="due_date">
-    <label>Priority:</label>
-    <select name="priority" width=100px>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
-        <option value="9">9</option>
-        <option value="10">10</option>
-    </select>
+
+    {{ form.name(placeholder="name") }} 
+    {% if form.name.errors %}
+        {% for error in form.name.errors %}
+            {{ error }}
+        {% endfor %}
+    {% endif %}
+    <br>
+    {{ form.due_date(placeholder="due date (mm/dd/yyyy)") }} 
+    {% if form.due_date.errors %}
+        {% for error in form.due_date.errors %}
+            {{ error }}
+        {% endfor %}
+    {% endif %}
+    <br>
+    {{ form.priority.label }} 
+    {{ form.priority }} 
+    {% if form.priority.errors %}
+        {% for error in form.priority.errors %}
+            {{ error }}
+        {% endfor %}
+    {% endif %}
+    <br>
     <input class="button" type="submit" value="Save new task">
 </form>
 
