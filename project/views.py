@@ -41,6 +41,7 @@ def login_required(test):
 # route handlers
 
 @app.route('/logout/')
+@login_required
 def logout():
     """Logout."""
     session.pop('logged_in', None)
@@ -76,7 +77,7 @@ def login():
     )
 
 
-@app.route('/register', methods=['GET', 'POST'])
+@app.route('/register/', methods=['GET', 'POST'])
 def register():
     """User registration."""
     error = None
@@ -139,7 +140,7 @@ def new_task():
     )
 
 
-@app.route('/delete/<int:task_id>')
+@app.route('/delete/<int:task_id>/')
 @login_required
 def delete_task(task_id):
     """Delete a task by id."""
@@ -150,7 +151,7 @@ def delete_task(task_id):
     return redirect(url_for('tasks'))
 
 
-@app.route('/complete/<int:task_id>')
+@app.route('/complete/<int:task_id>/')
 @login_required
 def complete_task(task_id):
     """Complete a task by id."""
