@@ -1,25 +1,42 @@
 <!DOCTYPE html>
-
+<html lang="en">
 <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
     <title>whatup</title>
-    <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.min.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 
 <body>
-    <div class="page">
-        {% for message in get_flashed_messages() %}
-            <div class="flash">{{ message }}</div>
-        {% endfor %}
 
-        {% if error %}
-            <div class="error">Error: {{ error }}</div>
-        {% endif %}
+    <div class="container">
+        <div class="content">
+            {% for message in get_flashed_messages() %}
+                <div class="flash">{{ message }}</div>
+            {% endfor %}
 
-        <br>
+            {% if error %}
+                <div class="error">Error: {{ error }}</div>
+            {% endif %}
 
-        {% block content%}
-        {% endblock %}
+            {% block content%}
+            {% endblock %}
+        </div>
+        <div class="footer">
+            <hr>
+            <p>&copy; <a href="https://www.realpython.com">Real Python</a></p>
+        </div>
     </div>
+
+    <!-- Scripts -->
+    <script src="{{url_for('static', filename='js/jquery-2.2.4.min.js')}}"></script>
+    <script src="{{url_for('static', filename='js/bootstrap.min.js')}}"></script>
 </body>
 
 </html>

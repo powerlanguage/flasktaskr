@@ -26,6 +26,8 @@ from models import Task, User
 
 
 # helper functions
+
+
 def login_required(test):
     """Wrapper to require login."""
     @wraps(test)
@@ -38,7 +40,20 @@ def login_required(test):
     return wrap
 
 
+def open_tasks():
+    """Return open tasks."""
+    return db.session.query(Task) \
+        .filter_by(status='1').order_by(Task.due_date.asc())
+
+
+def closed_tasks():
+    """Return closed tasks."""
+    return db.session.query(Task) \
+        .filter_by(status='0').order_by(Task.due_date.asc())
+
+
 # route handlers
+
 
 @app.route('/logout/')
 @login_required
@@ -46,6 +61,7 @@ def logout():
     """Logout."""
     session.pop('logged_in', None)
     session.pop('user_id', None)
+    session.pop('role', None)
     flash('Peace!')
     return redirect(url_for('login'))
 
@@ -63,6 +79,7 @@ def login():
             if user is not None and user.password == form.password.data:
                 session['logged_in'] = True
                 session['user_id'] = user.id
+                session['role'] = user.role
                 flash("Welcome, {0}".format(user.name))
                 return redirect(url_for('tasks'))
             else:
@@ -144,10 +161,17 @@ def new_task():
 @login_required
 def delete_task(task_id):
     """Delete a task by id."""
-    task_name = Task.query.filter_by(task_id=task_id).first().name
-    db.session.query(Task).filter_by(task_id=task_id).delete()
-    db.session.commit()
-    flash("{0} was deleted. Nice".format(task_name))
+    task = Task.query.filter_by(task_id=task_id)
+
+    if task.first().user_id == session['user_id'] \
+            or session['role'] == 'admin':
+        # have to store the task name for the flash before we delete it
+        task_name = task.first().name
+        task.delete()
+        db.session.commit()
+        flash("{0} was deleted. Nice".format(task_name))
+    else:
+        flash("You can only delete tasks that belong to you.")
     return redirect(url_for('tasks'))
 
 
@@ -155,10 +179,16 @@ def delete_task(task_id):
 @login_required
 def complete_task(task_id):
     """Complete a task by id."""
-    task_name = Task.query.filter_by(task_id=task_id).first().name
-    db.session.query(Task).filter_by(task_id=task_id).update({"status": "0"})
-    db.session.commit()
-    flash("{0} was completed. Nice".format(task_name))
+    task = Task.query.filter_by(task_id=task_id)
+
+    if task.first().user_id == session['user_id'] \
+            or session['role'] == 'admin':
+        task.update({"status": "0"})
+        db.session.commit()
+        flash("{0} was completed. Nice".format(task.first().name))
+    else:
+        flash("You can only update tasks that belong to you.")
+
     return redirect(url_for('tasks'))
 
 
@@ -172,15 +202,3 @@ def complete_task(task_id):
 #                     error
 #                 )
 #             )
-
-
-def open_tasks():
-    """Return open tasks."""
-    return db.session.query(Task) \
-        .filter_by(status='1').order_by(Task.due_date.asc())
-
-
-def closed_tasks():
-    """Return closed tasks."""
-    return db.session.query(Task) \
-        .filter_by(status='0').order_by(Task.due_date.asc())

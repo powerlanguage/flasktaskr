@@ -1,4 +1,4 @@
-"""FlaskTaskr Tests."""
+"""FlaskTaskr User Tests."""
 
 import os
 import unittest
@@ -66,6 +66,17 @@ class TestCase(unittest.TestCase):
         db.session.add(new_user)
         db.session.commit()
 
+    def create_admin_user(self, name, email, password):
+        """Direct create an admin user."""
+        new_admin = User(
+            name=name,
+            email=email,
+            password=password,
+            role='admin'
+        )
+        db.session.add(new_admin)
+        db.session.commit()
+
     def create_task(self):
         """Fixed create task helper."""
         return self.app.post(
@@ -81,74 +92,6 @@ class TestCase(unittest.TestCase):
         )
 
     # tests
-
-    def test_form_is_present_on_login_page(self):
-        """Test."""
-        response = self.app.get('/')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Please login', response.data)
-
-    def test_users_cannot_login_unless_registered(self):
-        """Test."""
-        response = self.login('asds', 'asdas')
-        self.assertIn(
-            b'Error: Invalid credentials.  Please try again.',
-            response.data
-        )
-
-    def test_users_can_register(self):
-        """Test."""
-        response = self.register(
-            "tonyhat",
-            "tony@hat.com",
-            "tonyhat",
-            "tonyhat"
-        )
-        self.assertIn(b'Thanks for registering,', response.data)
-
-    def test_user_registration_error(self):
-        """Test."""
-        self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
-        response = self.register(
-            "tonyhat",
-            "tony@hat.com",
-            "tonyhat",
-            "tonyhat"
-        )
-        self.assertIn(
-            b'That username and/or email already exists.',
-            response.data
-        )
-
-    def test_users_can_login(self):
-        """Test."""
-        self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
-        response = self.login('tonyhat', 'tonyhat')
-        self.assertIn(b'Welcome', response.data)
-
-    def test_invalid_form_data(self):
-        """Test."""
-        self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
-        response = self.login('alert("alert box!;', 'foo')
-        self.assertIn(b'Invalid credentials', response.data)
-
-    def test_form_is_present_on_register_page(self):
-        """Test."""
-        response = self.app.get('register/')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Please create an account', response.data)
-
-    def test_logged_in_users_can_logout(self):
-        """Test."""
-        self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
-        self.login('tonyhat', 'tonyhat')
-        response = self.logout()
-        self.assertIn(b'Peace', response.data)
-
-    def test_logged_out_users_cannot_logout(self):
-        """Test."""
-        response = self.logout()
-        self.assertNotIn(b'Peace', response.data)
 
     def test_logged_in_users_can_access_tasks_page(self):
         """Test."""
@@ -213,6 +156,47 @@ class TestCase(unittest.TestCase):
         self.login('joshua', 'joshua')
         response = self.app.get('complete/1/', follow_redirects=True)
         self.assertNotIn(b'was completed. Nice', response.data)
+        self.assertIn(
+            b'You can only update tasks that belong to you.',
+            response.data
+        )
+
+    def test_users_cannot_delete_tasks_created_by_other(self):
+        """Test."""
+        self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
+        self.login('tonyhat', 'tonyhat')
+        self.create_task()
+        self.logout()
+        self.register("joshua", "josh@ua.com", "joshua", "joshua")
+        self.login('joshua', 'joshua')
+        response = self.app.get('delete/1/', follow_redirects=True)
+        self.assertNotIn(b'was deleted. Nice', response.data)
+        self.assertIn(
+            b'You can only delete tasks that belong to you.',
+            response.data
+        )
+
+    def test_admin_users_can_complete_tasks_created_by_other(self):
+        """Test."""
+        self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
+        self.login('tonyhat', 'tonyhat')
+        self.create_task()
+        self.logout()
+        self.create_admin_user("joshua", "josh@ua.com", "joshua")
+        self.login('joshua', 'joshua')
+        response = self.app.get('complete/1/', follow_redirects=True)
+        self.assertIn(b'was completed. Nice', response.data)
+
+    def test_admin_users_can_delete_tasks_created_by_other(self):
+        """Test."""
+        self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
+        self.login('tonyhat', 'tonyhat')
+        self.create_task()
+        self.logout()
+        self.create_admin_user("joshua", "josh@ua.com", "joshua")
+        self.login('joshua', 'joshua')
+        response = self.app.get('delete/1/', follow_redirects=True)
+        self.assertIn(b'was deleted. Nice', response.data)
 
 if __name__ == "__main__":
     unittest.main()
