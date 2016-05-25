@@ -1,8 +1,11 @@
-from views import db
+"""Project Models."""
+
+from project import db
 import datetime
 
 
 class Task(db.Model):
+
     __tablename__ = "tasks"
 
     task_id = db.Column(db.Integer, primary_key=True)
@@ -26,6 +29,7 @@ class Task(db.Model):
 
 
 class User(db.Model):
+
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
