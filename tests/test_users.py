@@ -3,7 +3,7 @@
 import os
 import unittest
 
-from project import app, db
+from project import app, db, bcrypt
 from project._config import basedir
 from project.models import User, Task
 
@@ -19,10 +19,15 @@ class TestCase(unittest.TestCase):
         """Set up."""
         app.config['TESTING'] = True
         app.config['WTF_CSRF_ENABLED'] = False
+        app.config['DEBUG'] = False
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + \
             os.path.join(basedir, TEST_DB)
         self.app = app.test_client()
         db.create_all()
+
+        # Make sure we are testing in production mode
+
+        self.assertEquals(app.debug, False)
 
     def tearDown(self):
         """Tear down."""
@@ -61,7 +66,7 @@ class TestCase(unittest.TestCase):
         new_user = User(
             name=name,
             email=email,
-            password=password
+            password=bcrypt.generate_password_hash(password)
         )
         db.session.add(new_user)
         db.session.commit()

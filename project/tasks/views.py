@@ -61,7 +61,7 @@ def tasks():
         'tasks.html',
         form=AddTaskForm(request.form),
         open_tasks=open_tasks(),
-        closed_tasks=closed_tasks()
+        closed_tasks=closed_tasks(),
     )
 
 
@@ -86,7 +86,7 @@ def new_task():
         'tasks.html',
         form=form,
         open_tasks=open_tasks(),
-        closed_tasks=closed_tasks()
+        closed_tasks=closed_tasks(),
     )
 
 

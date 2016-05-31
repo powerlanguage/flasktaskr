@@ -2,65 +2,104 @@
 
 {% block content %}
 
-<form action="{{ url_for('tasks.new_task') }}" method="POST">
-    {{ form.csrf_token }}
+<div class="add-task">
+    <form action="{{ url_for('tasks.new_task') }}" method="POST">
+        {{ form.csrf_token }}
 
-    {{ form.name(placeholder="name") }} 
-    {% if form.name.errors %}
-        {% for error in form.name.errors %}
-            {{ error }}
-        {% endfor %}
-    {% endif %}
-    <br>
-    {{ form.due_date(placeholder="due date (mm/dd/yyyy)") }} 
-    {% if form.due_date.errors %}
-        {% for error in form.due_date.errors %}
-            {{ error }}
-        {% endfor %}
-    {% endif %}
-    <br>
-    {{ form.priority.label }} 
-    {{ form.priority }} 
-    {% if form.priority.errors %}
-        {% for error in form.priority.errors %}
-            {{ error }}
-        {% endfor %}
-    {% endif %}
-    <br>
-    <input class="button" type="submit" value="Save new task">
-</form>
-
-<br>
+        {{ form.name(placeholder="name") }} 
+        {% if form.name.errors %}
+            {% for error in form.name.errors %}
+                {{ error }}
+            {% endfor %}
+        {% endif %}
+        <br>
+        {{ form.due_date(placeholder="due date (mm/dd/yyyy)") }} 
+        {% if form.due_date.errors %}
+            {% for error in form.due_date.errors %}
+                {{ error }}
+            {% endfor %}
+        {% endif %}
+        <br>
+        {{ form.priority.label }} 
+        {{ form.priority }} 
+        {% if form.priority.errors %}
+            {% for error in form.priority.errors %}
+                {{ error }}
+            {% endfor %}
+        {% endif %}
+        <br>
+        <input class="button" type="submit" value="Save new task">
+    </form>
+</div>
+<div class="entries">
 <h2>Open Tasks</h2>
-{% for task in open_tasks %}    
-    <table>
-        <tr>
-            <td>{{ task.task_id }}</td>
-            <td>{{ task.name }}</td>
-            <td>{{ task.due_date }}</td>
-            <td>{{ task.posted_date }}</td>
-            <td>{{ task.priority }}</td>
-            <td>{{ task.poster.name }}</td>
-            <td><a href="{{url_for('tasks.complete_task', task_id=task.task_id)}}">Complete</a></td>
-            <td><a href="{{url_for('tasks.delete_task', task_id=task.task_id)}}">Delete</a></td>
-        </tr>
-    </table>
-{% endfor %}
-
+    <div class="datagrid">
+        <table>
+            <thead>
+                <tr>
+                    <th width="75px"><strong>ID</strong></th>
+                    <th width="200px"><strong>Task Name</strong></th>
+                    <th width="100px"><strong>Due Date</strong></th>
+                    <th width="100px"><strong>Posted Date</strong></th>
+                    <th width="50px"><strong>Priority</strong></th>
+                    <th width="90px"><strong>Posted By</strong></th>
+                    <th><strong>Actions</strong></th>
+                </tr>
+            </thead>
+            {% for task in open_tasks %}
+                <tr>
+                    <td>{{ task.task_id }}</td>
+                    <td>{{ task.name }}</td>
+                    <td>{{ task.due_date }}</td>
+                    <td>{{ task.posted_date }}</td>
+                    <td>{{ task.priority }}</td>
+                    <td>{{ task.poster.name }}</td>
+                    {% if task.poster.name == session.name or session.role == 'admin' %}
+                    <td>
+                    <a href="{{url_for('tasks.complete_task', task_id=task.task_id)}}">Complete</a>
+                     | <a href="{{url_for('tasks.delete_task', task_id=task.task_id)}}">Delete</a></td>
+                     {% else %}
+                        <td>N/A</td>
+                     {% endif %}
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
 <br>
-<h2>Completed Tasks</h2>
-{% for task in closed_tasks %}    
-    <table>
-        <tr>
-            <td>{{ task.task_id }}</td>
-            <td>{{ task.name }}</td>
-            <td>{{ task.due_date }}</td>
-            <td>{{ task.posted_date }}</td>
-            <td>{{ task.priority }}</td>
-            <td>{{ task.poster.name }}</td>
-            <td><a href="{{url_for('tasks.delete_task', task_id=task.task_id)}}">Delete</a></td>
-        </tr>
-    </table>
-{% endfor %}
-
+<br>
+<div class="entries">
+<h2>Closed Tasks</h2>
+    <div class="datagrid">
+        <table>
+            <thead>
+                <tr>
+                    <th width="75px"><strong>ID</strong></th>
+                    <th width="200px"><strong>Task Name</strong></th>
+                    <th width="100px"><strong>Due Date</strong></th>
+                    <th width="100px"><strong>Posted Date</strong></th>
+                    <th width="50px"><strong>Priority</strong></th>
+                    <th width="90px"><strong>Posted By</strong></th>
+                    <th><strong>Actions</strong></th>
+                </tr>
+            </thead>
+            {% for task in closed_tasks %}
+                <tr>
+                    <td>{{ task.task_id }}</td>
+                    <td>{{ task.name }}</td>
+                    <td>{{ task.due_date }}</td>
+                    <td>{{ task.posted_date }}</td>
+                    <td>{{ task.priority }}</td>
+                    <td>{{ task.poster.name }}</td>
+                    {% if task.poster.name == session.name or session.role == 'admin' %}
+                    <td>
+                     <a href="{{url_for('tasks.delete_task', task_id=task.task_id)}}">Delete</a></td>
+                     {% else %}
+                        <td>N/A</td>
+                     {% endif %}
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
 {% endblock %}

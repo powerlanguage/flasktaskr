@@ -3,7 +3,7 @@
 import os
 import unittest
 
-from project import app, db
+from project import app, db, bcrypt
 from project._config import basedir
 from project.models import User, Task
 
@@ -19,10 +19,15 @@ class TestCase(unittest.TestCase):
         """Set up."""
         app.config['TESTING'] = True
         app.config['WTF_CSRF_ENABLED'] = False
+        app.config['DEBUG'] = False
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + \
             os.path.join(basedir, TEST_DB)
         self.app = app.test_client()
         db.create_all()
+
+        # Make sure we are testing in production mode
+
+        self.assertEquals(app.debug, False)
 
     def tearDown(self):
         """Tear down."""
@@ -61,7 +66,7 @@ class TestCase(unittest.TestCase):
         new_user = User(
             name=name,
             email=email,
-            password=password
+            password=bcrypt.generate_password_hash(password)
         )
         db.session.add(new_user)
         db.session.commit()
@@ -71,7 +76,7 @@ class TestCase(unittest.TestCase):
         new_admin = User(
             name=name,
             email=email,
-            password=password,
+            password=bcrypt.generate_password_hash(password),
             role='admin'
         )
         db.session.add(new_admin)
@@ -197,6 +202,55 @@ class TestCase(unittest.TestCase):
         self.login('joshua', 'joshua')
         response = self.app.get('delete/1/', follow_redirects=True)
         self.assertIn(b'was deleted. Nice', response.data)
+
+    def test_task_template_displays_logged_in_user_name(self):
+        """Test."""
+        self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
+        self.login('tonyhat', 'tonyhat')
+        response = self.app.get('tasks/', follow_redirects=True)
+        self.assertIn(b'tonyhat', response.data)
+
+    def test_users_cannot_see_task_modify_links_for_other_tasks(self):
+        """Test."""
+        self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
+        self.login('tonyhat', 'tonyhat')
+        self.create_task()
+        self.create_task()
+        self.app.get('complete/2/')
+        self.logout()
+        self.register("joshua", "josh@ua.com", "joshua", "joshua")
+        self.login('joshua', 'joshua')
+        response = self.app.get('tasks/', follow_redirects=True)
+        self.assertNotIn(b'Complete', response.data)
+        self.assertNotIn(b'Delete', response.data)
+
+    def test_users_can_see_task_modify_links_for_own_tasks(self):
+        """Test."""
+        self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
+        self.login('tonyhat', 'tonyhat')
+        self.create_task()
+        self.logout()
+        self.register("joshua", "josh@ua.com", "joshua", "joshua")
+        self.login('joshua', 'joshua')
+        self.create_task()
+        response = self.app.get('tasks/', follow_redirects=True)
+        self.assertIn(b'/complete/2/', response.data)
+        self.assertIn(b'/delete/2/', response.data)
+
+    def test_admin_users_can_see_task_modify_links_for_all_tasks(self):
+        """Test."""
+        self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
+        self.login('tonyhat', 'tonyhat')
+        self.create_task()
+        self.logout()
+        self.create_admin_user("joshua", "josh@ua.com", "joshua")
+        self.login('joshua', 'joshua')
+        self.create_task()
+        response = self.app.get('tasks/', follow_redirects=True)
+        self.assertIn(b'/complete/1/', response.data)
+        self.assertIn(b'/delete/1/', response.data)
+        self.assertIn(b'/complete/2/', response.data)
+        self.assertIn(b'/delete/2/', response.data)
 
 if __name__ == "__main__":
     unittest.main()

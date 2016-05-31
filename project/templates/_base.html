@@ -15,6 +15,21 @@
 
 <body>
 
+    <div class="navbar" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/">FlaskTaskr</a>
+            </div>
+            <div class="navbar-right">
+                {% if session.logged_in %}
+                    You are logged in as {{ session.name }}.
+                {% else %}
+                    You are not logged in.
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <div class="content">
             {% for message in get_flashed_messages() %}
