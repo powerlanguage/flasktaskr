@@ -21,7 +21,7 @@ def push():
 def prepare():
     test()
     commit()
-    push()
+    # push()
 
 
 def pull():
