@@ -5,7 +5,7 @@ import unittest
 
 from project import app, db, bcrypt
 from project._config import basedir
-from project.models import User, Task
+from project.models import User
 
 TEST_DB = 'test.db'
 
@@ -88,13 +88,13 @@ class TestCase(unittest.TestCase):
     # tests
 
     def test_form_is_present_on_login_page(self):
-        """Test."""
+        """Login form present on login page."""
         response = self.app.get('/')
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Please login', response.data)
 
     def test_users_cannot_login_unless_registered(self):
-        """Test."""
+        """User cannot login unless registered."""
         response = self.login('asds', 'asdas')
         self.assertIn(
             b'Error: Invalid credentials.  Please try again.',
@@ -102,7 +102,7 @@ class TestCase(unittest.TestCase):
         )
 
     def test_users_can_register(self):
-        """Test."""
+        """User can register."""
         response = self.register(
             "tonyhat",
             "tony@hat.com",
@@ -112,7 +112,7 @@ class TestCase(unittest.TestCase):
         self.assertIn(b'Thanks for registering,', response.data)
 
     def test_duplicate_user_registration_error(self):
-        """Test."""
+        """Duplicate registration errors."""
         self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
         response = self.register(
             "tonyhat",
@@ -126,44 +126,44 @@ class TestCase(unittest.TestCase):
         )
 
     def test_users_can_login(self):
-        """Test."""
+        """User can login."""
         self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
         response = self.login('tonyhat', 'tonyhat')
         self.assertIn(b'Welcome', response.data)
 
     def test_invalid_form_data(self):
-        """Test."""
+        """Login form errors on invalid data."""
         self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
         response = self.login('alert("alert box!;', 'foo')
         self.assertIn(b'Invalid credentials', response.data)
 
     def test_form_is_present_on_register_page(self):
-        """Test."""
+        """Register form present on register page."""
         response = self.app.get('register/')
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Please create an account', response.data)
 
     def test_logged_in_users_can_logout(self):
-        """Test."""
+        """Logged in users can log out."""
         self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
         self.login('tonyhat', 'tonyhat')
         response = self.logout()
         self.assertIn(b'Peace', response.data)
 
     def test_logged_out_users_cannot_logout(self):
-        """Test."""
+        """Logged out user cannot log out."""
         response = self.logout()
         self.assertNotIn(b'Peace', response.data)
 
     def test_string_representation_of_user_object(self):
-        """Test."""
+        """String representation of user object."""
         self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
         users = db.session.query(User).all()
         for user in users:
             self.assertEqual(user.name, "tonyhat")
 
     def test_default_user_role(self):
-        """Test."""
+        """Default user role is user."""
         self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
         users = db.session.query(User).all()
         for user in users:
