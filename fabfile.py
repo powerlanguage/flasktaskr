@@ -15,13 +15,15 @@ def commit():
 
 
 def push():
-    local("git push origin master")
+    local("git branch")
+    branch = raw_input("WHich branch do you want to push to?")
+    local("git push origin {}".format(branch))
 
 
 def prepare():
     test()
     commit()
-    # push()
+    push()
 
 
 def pull():
