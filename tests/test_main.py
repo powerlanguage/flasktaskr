@@ -44,7 +44,13 @@ class MainTests(unittest.TestCase):
 
     # tests
 
+    def test_index(self):
+        """Ensure flask was set up correctly."""
+        response = self.app.get('/', content_type='html/text')
+        self.assertEqual(response.status_code, 200)
+
     def test_404_error(self):
+        """404s error correctly"""
         response = self.app.get('/this-route-doesnt-exist')
         self.assertEquals(response.status_code, 404)
         self.assertIn(b'Sorry, there\'s nothing here.', response.data)

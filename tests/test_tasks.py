@@ -5,7 +5,7 @@ import unittest
 
 from project import app, db, bcrypt
 from project._config import basedir
-from project.models import User, Task
+from project.models import User
 
 TEST_DB = 'test.db'
 
@@ -99,7 +99,7 @@ class TestCase(unittest.TestCase):
     # tests
 
     def test_logged_in_users_can_access_tasks_page(self):
-        """Test."""
+        """Logged in users can access tasks page."""
         self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
         self.login('tonyhat', 'tonyhat')
         response = self.app.get('/tasks/')
@@ -107,19 +107,19 @@ class TestCase(unittest.TestCase):
         self.assertIn(b'Save new task', response.data)
 
     def test_not_logged_in_users_cannot_access_tasks_page(self):
-        """Test."""
+        """Logged out users cannot access tasks page."""
         response = self.app.get('/tasks/', follow_redirects=True)
         self.assertIn(b'You need to login first', response.data)
 
     def test_users_can_add_tasks(self):
-        """Test."""
+        """User can add tasks."""
         self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
         self.login('tonyhat', 'tonyhat')
         response = self.create_task()
         self.assertIn(b'was successfully posted. Thanks.', response.data)
 
     def test_users_cannot_add_tasks_when_error(self):
-        """Test."""
+        """Adding tasks with blank field errors."""
         self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
         self.login('tonyhat', 'tonyhat')
         response = self.app.post(
@@ -136,7 +136,7 @@ class TestCase(unittest.TestCase):
         self.assertIn(b'This field is required.', response.data)
 
     def test_users_can_complete_tasks(self):
-        """Test."""
+        """User can complete tasks."""
         self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
         self.login('tonyhat', 'tonyhat')
         self.create_task()
@@ -144,7 +144,7 @@ class TestCase(unittest.TestCase):
         self.assertIn(b'was completed. Nice', response.data)
 
     def test_users_can_delete_tasks(self):
-        """Test."""
+        """User can delete tasks."""
         self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
         self.login('tonyhat', 'tonyhat')
         self.create_task()
@@ -152,7 +152,7 @@ class TestCase(unittest.TestCase):
         self.assertIn(b'was deleted. Nice', response.data)
 
     def test_users_cannot_complete_tasks_created_by_other(self):
-        """Test."""
+        """User cannot complete tasks created by other."""
         self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
         self.login('tonyhat', 'tonyhat')
         self.create_task()
@@ -167,7 +167,7 @@ class TestCase(unittest.TestCase):
         )
 
     def test_users_cannot_delete_tasks_created_by_other(self):
-        """Test."""
+        """User cannot delete tasks created by other."""
         self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
         self.login('tonyhat', 'tonyhat')
         self.create_task()
@@ -182,7 +182,7 @@ class TestCase(unittest.TestCase):
         )
 
     def test_admin_users_can_complete_tasks_created_by_other(self):
-        """Test."""
+        """Admin can complete any task."""
         self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
         self.login('tonyhat', 'tonyhat')
         self.create_task()
@@ -193,7 +193,7 @@ class TestCase(unittest.TestCase):
         self.assertIn(b'was completed. Nice', response.data)
 
     def test_admin_users_can_delete_tasks_created_by_other(self):
-        """Test."""
+        """Admin can delete any task."""
         self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
         self.login('tonyhat', 'tonyhat')
         self.create_task()
@@ -204,14 +204,14 @@ class TestCase(unittest.TestCase):
         self.assertIn(b'was deleted. Nice', response.data)
 
     def test_task_template_displays_logged_in_user_name(self):
-        """Test."""
+        """Template displays logged in user name."""
         self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
         self.login('tonyhat', 'tonyhat')
         response = self.app.get('tasks/', follow_redirects=True)
         self.assertIn(b'tonyhat', response.data)
 
     def test_users_cannot_see_task_modify_links_for_other_tasks(self):
-        """Test."""
+        """User cannot see task modify links for other user tasks."""
         self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
         self.login('tonyhat', 'tonyhat')
         self.create_task()
@@ -225,7 +225,7 @@ class TestCase(unittest.TestCase):
         self.assertNotIn(b'Delete', response.data)
 
     def test_users_can_see_task_modify_links_for_own_tasks(self):
-        """Test."""
+        """User can see task modify links for own tasks."""
         self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
         self.login('tonyhat', 'tonyhat')
         self.create_task()
@@ -238,7 +238,7 @@ class TestCase(unittest.TestCase):
         self.assertIn(b'/delete/2/', response.data)
 
     def test_admin_users_can_see_task_modify_links_for_all_tasks(self):
-        """Test."""
+        """Admin can see all task modify links."""
         self.register("tonyhat", "tony@hat.com", "tonyhat", "tonyhat")
         self.login('tonyhat', 'tonyhat')
         self.create_task()

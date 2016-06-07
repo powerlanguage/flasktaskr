@@ -1,3 +1,5 @@
+"""Flasktaskr api tests."""
+
 import os
 import unittest
 from datetime import date
@@ -36,6 +38,7 @@ class APITests(unittest.TestCase):
     # Helper Methods
 
     def add_tasks(self):
+        """Add dummy tasks."""
         db.session.add(
             Task(
                 "Test task 1.",
@@ -63,6 +66,7 @@ class APITests(unittest.TestCase):
     # Tests
 
     def test_collection_endpoint_returns_correct_data(self):
+        """Collection endpoint returns correct data."""
         self.add_tasks()
         response = self.app.get('api/v1/tasks/', follow_redirects=True)
         self.assertEquals(response.status_code, 200)
@@ -71,6 +75,7 @@ class APITests(unittest.TestCase):
         self.assertIn(b'A totally different thing.', response.data)
 
     def test_resource_endpoint_returns_correct_data(self):
+        """Resource endpoint returns correct data."""
         self.add_tasks()
         response = self.app.get('api/v1/tasks/2', follow_redirects=True)
         self.assertEquals(response.status_code, 200)
@@ -79,6 +84,7 @@ class APITests(unittest.TestCase):
         self.assertIn(b'A totally different thing.', response.data)
 
     def test_invalid_resource_endpoint_returns_error(self):
+        """Invalid endpoint returns error."""
         self.add_tasks()
         response = self.app.get('api/v1/tasks/209', follow_redirects=True)
         self.assertEquals(response.status_code, 404)
